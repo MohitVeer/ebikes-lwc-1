@@ -270,3 +270,5 @@ Follow these steps to run the UI tests manually:
 ### Code Tours
 
 Code Tours are guided walkthroughs that will help you understand the app code better. To be able to run them, install the [CodeTour VSCode extension](https://marketplace.visualstudio.com/items?itemName=vsls-contrib.codetour).
+#   e b i k e s - l w c  
+ 
