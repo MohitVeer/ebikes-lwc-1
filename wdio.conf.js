@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-const path = require('path');
 const { UtamWdioService } = require('wdio-utam-service');
 // use prefix 'DEBUG=true' to run test in debug mode
 const { DEBUG } = process.env;
@@ -28,13 +27,22 @@ exports.config = {
     connectionRetryTimeout: 120000,
     connectionRetryCount: 3,
     automationProtocol: 'webdriver',
-    services: ['chromedriver', [UtamWdioService, { implicitTimeout: 0 }]],
+    services: [
+        'chromedriver',
+        [
+            UtamWdioService,
+            {
+                implicitTimeout: 0,
+                injectionConfigs: [
+                    'salesforce-pageobjects/ui-utam-pageobjects.config.json'
+                ]
+            }
+        ]
+    ],
     framework: 'jasmine',
     reporters: ['spec'],
-    jasmineNodeOpts: {
+    jasmineNodeOpt: {
         // max execution time for a script, set to 5 min
-        defaultTimeoutInterval: 1000 * 60 * 5,
-        // Temporary workaround to get babel to work in wdio tests
-        helpers: [path.resolve(process.cwd(), 'wdioJasmineHelper.js')]
+        defaultTimeoutInterval: 1000 * 60 * 5
     }
 };

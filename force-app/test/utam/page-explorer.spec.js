@@ -6,8 +6,7 @@ import ProductFilter from '../../../pageObjects/productFilter';
 import ProductTileList from '../../../pageObjects/productTileList';
 import ProductCard from '../../../pageObjects/productCard';
 import ProductExplorerPage from '../../../pageObjects/productExplorerPage';
-
-const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours by default
+import { logInSalesforce } from './utam-helper';
 
 const PAGINATION_ALL_ITEMS = '16 items • page 1 of 2';
 const PAGINATION_FILTERED_ITEMS = '4 items • page 1 of 1';
@@ -15,48 +14,19 @@ const SELECTION_EMPTY = 'Select a product to see details';
 
 const RECORD_PAGE_URL = /lightning\/r\/Product__c\/[a-z0-9]{18}\/view/i;
 
-// Check environment variables
-['SALESFORCE_LOGIN_URL', 'SALESFORCE_LOGIN_TIME'].forEach((varName) => {
-    if (!process.env[varName]) {
-        console.error(`Missing ${varName} environment variable`);
-        process.exit(-1);
-    }
-});
-const { SALESFORCE_LOGIN_URL, SALESFORCE_LOGIN_TIME } = process.env;
-
-// Check for Salesforce session timeout
-if (
-    new Date().getTime() - parseInt(SALESFORCE_LOGIN_TIME, 10) >
-    SESSION_TIMEOUT
-) {
-    console.error(
-        `ERROR: Salesforce session timed out. Re-authenticate before running tests.`
-    );
-    process.exit(-1);
-}
-
 describe('ProductExplorer', () => {
-    let page;
     let domDocument;
-    let productFilter, productTileList, productCard;
 
     beforeAll(async () => {
-        // Navigate to login URL
-        await browser.navigateTo(SALESFORCE_LOGIN_URL);
-
-        // Wait for home page URL
-        domDocument = utam.getCurrentDocument();
-        await domDocument.waitFor(async () =>
-            (await domDocument.getUrl()).endsWith('/home')
-        );
+        domDocument = await logInSalesforce();
     });
 
     it('displays, filters and selects product from list', async () => {
         // Wait for home page to load
-        page = await utam.load(ProductExplorerPage);
+        const page = await utam.load(ProductExplorerPage);
 
         // Click 'Product Explorer' in app navigation menu and wait for URL navigation
-        const appNav = await page.getNavigationBar();
+        const appNav = await page.getAppNav();
         const appNavBar = await appNav.getAppNavBar();
         const navItem = await appNavBar.getNavItem('Product Explorer');
         await navItem.clickAndWaitForUrl('lightning/n/Product_Explorer');
@@ -66,11 +36,13 @@ describe('ProductExplorer', () => {
 
         // Get page components from page template regions
         const leftComponent = await page.getLeftComponent();
-        productFilter = await leftComponent.getContent(ProductFilter);
+        const productFilter = await leftComponent.getContent(ProductFilter);
         const centerComponent = await page.getCenterComponent();
-        productTileList = await centerComponent.getContent(ProductTileList);
+        const productTileList = await centerComponent.getContent(
+            ProductTileList
+        );
         const rightComponent = await page.getRightComponent();
-        productCard = await rightComponent.getContent(ProductCard);
+        const productCard = await rightComponent.getContent(ProductCard);
 
         // Check default pagination info in product tile list
         const pageInfo = await productTileList.getPaginationInfo();
